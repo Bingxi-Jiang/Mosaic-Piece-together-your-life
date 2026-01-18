@@ -22,7 +22,7 @@ template: 当日截图分析的输出模板(具体例子参考timeline_y-m-d.jso
 \
 random_screenshots: 用于生成screenshots_test文件夹，通过读取screenshots【当日】现有文件
 \
-test_screenshots: 截图function
+test_screenshots: 截图function(目前为了方便测试是5秒一截屏，正常情况是15min一截屏)
 \
 test_timeline: 生成timeline的json文件(json文件会生成在对应screenshots文件夹的当日文件夹里面)
 \
