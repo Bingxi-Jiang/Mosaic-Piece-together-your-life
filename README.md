@@ -32,7 +32,7 @@ test_timeline: 生成timeline的json文件(json文件会生成在对应screensho
 \
 daily_report_y-m-d.json: 每日报告的例子(默认存储路径在对应的screenshots里面)
 \
-redraw_y-m-d_style.jpg: Gemini3生成的照片去描述这一天。style指绘画风格，目前设置了7种风格[风格设置位置(32-33行)](test_generation.py#L32-L33)
+redraw_y-m-d_style.jpg: Gemini3生成的照片去描述这一天。style指绘画风格，目前设置了7种风格: [风格设置位置(32-33行)](test_generation.py#L32-L33)，[具体风格prompt位置](test_generation.py#L129-L187)
 \
 test_generation: 生成所有用于【网页】的原始数据
 \
