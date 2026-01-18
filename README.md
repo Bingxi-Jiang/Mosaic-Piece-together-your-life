@@ -40,6 +40,9 @@ test_generation: 生成所有用于【网页】的原始数据
 ***网页***
 \
 \
+在terminal运行`python -m http.server 8000`，然后去浏览器输入`http://localhost:8000/web/`，再看右上角的`load`去加载文件。
+\
+
 
 ## TODO
 

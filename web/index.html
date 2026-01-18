@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mosaic — Daily Recap</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="bg">
+    <div class="noise"></div>
+  </div>
+
+  <header class="header">
+    <div class="container header__inner">
+      <div class="brand">
+        <div class="brand__logo">M</div>
+        <div class="brand__text">
+          <div class="brand__name">Mosaic</div>
+          <div class="brand__sub">Piece together your day</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="control">
+          <label for="dateInput">Date</label>
+          <input id="dateInput" type="date" />
+        </div>
+        <div class="control">
+          <label for="styleSelect">Style</label>
+          <select id="styleSelect" disabled>
+            <option>year_in_review_cute</option>
+          </select>
+        </div>
+        <button id="loadBtn" class="btn">Load</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main">
+    <section class="hero">
+      <div class="hero__left">
+        <h1 id="title" class="h1">Daily Recap</h1>
+        <p id="subtitle" class="sub">
+          Load your daily report JSON and we’ll render the timeline, vibe, and your “redrawn day”.
+        </p>
+
+        <div class="pillRow" id="pillRow">
+          <!-- filled dynamically -->
+        </div>
+      </div>
+
+      <div class="hero__right card">
+        <div class="card__head">
+          <div class="card__title">Quick Stats</div>
+          <div class="card__meta" id="statsMeta">—</div>
+        </div>
+        <div class="card__body">
+          <div class="statsGrid">
+            <div class="stat">
+              <div class="stat__label">Segments</div>
+              <div class="stat__value" id="statSegments">—</div>
+            </div>
+            <div class="stat">
+              <div class="stat__label">Context switches</div>
+              <div class="stat__value" id="statSwitches">—</div>
+            </div>
+            <div class="stat">
+              <div class="stat__label">Top surface</div>
+              <div class="stat__value" id="statTopSurface">—</div>
+            </div>
+            <div class="stat">
+              <div class="stat__label">Top activity</div>
+              <div class="stat__value" id="statTopActivity">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <!-- Timeline -->
+      <section class="card span2">
+        <div class="card__head">
+          <div class="card__title">Timeline</div>
+          <div class="card__meta" id="timelineMeta">—</div>
+        </div>
+        <div class="card__body">
+          <div class="tabs">
+            <button class="tab isActive" data-tab="human">Readable</button>
+            <button class="tab" data-tab="segments">Segments</button>
+          </div>
+
+          <div id="tab-human" class="tabPanel isActive">
+            <div id="timelineReadable" class="list"></div>
+          </div>
+
+          <div id="tab-segments" class="tabPanel">
+            <div id="timelineSegments" class="segments"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Redraw image -->
+      <section class="card">
+        <div class="card__head">
+          <div class="card__title">Redraw of the day</div>
+          <div class="card__meta" id="imageMeta">—</div>
+        </div>
+        <div class="card__body">
+          <div class="imageWrap">
+            <img id="redrawImg" alt="Redrawn day" />
+            <div class="imageFallback" id="imageFallback">
+              No image loaded yet.
+            </div>
+          </div>
+          <div class="smallNote" id="imagePath">—</div>
+        </div>
+      </section>
+
+      <!-- Vibe + Caring -->
+      <section class="card">
+        <div class="card__head">
+          <div class="card__title">Vibe & care</div>
+          <div class="card__meta" id="vibeMeta">—</div>
+        </div>
+        <div class="card__body">
+          <div class="vibeRow">
+            <div class="vibeBadge" id="vibeBadge">—</div>
+            <div class="confidence" id="vibeConf">—</div>
+          </div>
+
+          <div class="sectionTitle">Why</div>
+          <ul class="bullets" id="vibeWhy"></ul>
+
+          <div class="sectionTitle">Notable patterns</div>
+          <ul class="bullets" id="vibePatterns"></ul>
+
+          <div class="divider"></div>
+
+          <div class="sectionTitle">Caring message</div>
+          <p class="para" id="caringMessage">—</p>
+
+          <div class="quote" id="quote">—</div>
+          <div class="humor" id="humorAlt">—</div>
+        </div>
+      </section>
+
+      <!-- Totals -->
+      <section class="card span2">
+        <div class="card__head">
+          <div class="card__title">Totals</div>
+          <div class="card__meta" id="totalsMeta">—</div>
+        </div>
+        <div class="card__body">
+          <div class="twoCol">
+            <div>
+              <div class="sectionTitle">By surface</div>
+              <div id="bySurface" class="bars"></div>
+            </div>
+            <div>
+              <div class="sectionTitle">By activity</div>
+              <div id="byActivity" class="bars"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer note -->
+      <section class="footNote">
+        <div class="footNote__inner">
+          <div class="footNote__title">How to load</div>
+          <div class="footNote__text">
+            This page expects a <code>daily_report_YYYY-MM-DD.json</code> and (optionally) a matching
+            <code>timeline_YYYY-MM-DD.json</code> under your screenshots day folder.
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
