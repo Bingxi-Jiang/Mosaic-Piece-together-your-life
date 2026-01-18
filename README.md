@@ -14,13 +14,13 @@ screenshots: 存储截图文件夹(归档方式按照 年-月-日)
 \
 screenshots_test: 测试文件夹
 \
-template: 当日截图分析的输出模板(具体例子参考screenshots_test里面的timeline_2026_01_17.json)
+template: 当日截图分析的输出模板(具体例子参考example_timeline.json)
 \
 random_screenshots: 用于生成screenshots_test文件夹，通过读取screenshots【当日】现有文件
 \
 test_screenshots: 截图function
 \
-test_timeline: 生成timeline的json文件
+test_timeline: 生成timeline的json文件(json文件会生成在对应screenshots文件夹的当日文件夹里面)
 \
 ## TODO
 ***潜在的问题***
