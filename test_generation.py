@@ -378,7 +378,7 @@ def generate_daily_story() -> Dict[str, Any]:
         "outputs": {
             "vibe": vibe,
             "image": {
-                "file": os.path.abspath(img_path),
+                "file": img_path.replace("\\", "/"),
                 "mime_type": img_mime,
                 "prompt_used": image_prompt,
             }
