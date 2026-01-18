@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "date_local": "2026-01-17",
+  "timezone": "America/Los_Angeles",
+  "inputs": {
+    "timeline_json": "D:\\Mosaic-Piece-together-your-life\\screenshots_test\\2026\\January\\17\\timeline_2026-01-17.json",
+    "style_preset": "year_in_review_cute",
+    "style_name": "Cute Year-in-Review"
+  },
+  "outputs": {
+    "vibe": {
+      "primary_vibe": "deep_focus",
+      "confidence": 0.95,
+      "why": [
+        "The timeline shows exceptionally long, uninterrupted blocks of coding, specifically a 129-minute session and a 167-minute session.",
+        "Minimal context switching occurred during the core hours of the day, indicating a high state of immersion.",
+        "The transition from deep work to administrative tasks (email, messaging) only happened after significant technical milestones were likely met."
+      ],
+      "notable_patterns": [
+        "Heavy reliance on AI-assisted development with ChatGPT as the primary environment.",
+        "A structured workflow that moves from research (Devpost, Canvas) into execution (VS Code, GitHub)."
+      ],
+      "caring_message": "You've put in some incredible focus today, especially with those marathon coding sessions. It’s impressive how you stayed in the zone for so long, but make sure to give your eyes a rest and move around a bit. Your brain has done a lot of heavy lifting, so try to disconnect fully before heading to sleep.",
+      "quote": "The man who moves a mountain begins by carrying away small stones.",
+      "humor_alt": "At this point, I suspect your internal monologue is written in Python. Don't forget to 'import sleep' before you crash!"
+    },
+    "image": {
+      "file": "D:\\Mosaic-Piece-together-your-life\\screenshots_test\\2026\\January\\17\\redraw_2026-01-17_year_in_review_cute.jpg",
+      "mime_type": "image/jpeg",
+      "prompt_used": "Create ONE illustration that \"redraws the day\" based on this desktop-usage timeline.\n\nComposition requirements:\n- A single cohesive scene (not a collage of many separate images).\n- Represent major activities with symbolic, cute, or iconic objects and micro-scenes.\n- Include a subtle timeline motif (e.g., a ribbon, clock arc, or progress bar) showing morning→evening.\n- Avoid drawing real UI screenshots or readable private text. No usernames, no emails, no exact titles.\n\nStyle:\nCreate a cute, warm 'year-in-review / daily recap' illustration. Chibi-style characters, soft shading, clean shapes, gentle glow, sticker-like elements, and a cohesive pastel palette. Add small iconic objects representing the day's activities.\n\nQuality:\n- High readability, clean composition, emotionally warm.\n- Target size hint: 1024x1024\n\nTimeline (for inspiration, do not copy literal text):\nDate: 2026-01-17 (America/Los_Angeles)\nTimeline (human readable):\n- 08:00–08:33  ChatGPT  | Coding (confidence: 1.00)\n- 08:37–08:52  Microsoft OneNote  | Writing/Reading (confidence: 1.00)\n- 08:56–09:11  Devpost  | Browsing (confidence: 1.00)\n- 09:15–09:30  Canvas  | Browsing (confidence: 1.00)\n- 09:34–11:43  ChatGPT  | Coding (confidence: 1.00)\n- 11:47–12:02  GitHub  | Coding (confidence: 1.00)\n- 12:06–12:21  Microsoft OneNote  | Writing/Reading (confidence: 1.00)\n- 12:25–12:40  Canvas  | Browsing (confidence: 1.00)\n- 12:44–15:30  ChatGPT  | Coding (confidence: 1.00)\n- 15:34–15:49  Visual Studio Code  | Coding (confidence: 1.00)\n- 15:53–16:08  ChatGPT  | Coding (confidence: 1.00)\n- 16:12–16:27  WeChat  | Messaging (confidence: 1.00)\n- 16:31–16:46  Visual Studio Code  | Coding (confidence: 1.00)\n- 16:50–17:05  ChatGPT  | Coding (confidence: 1.00)\n- 17:09–17:24  GitHub  | Coding (confidence: 1.00)\n- 17:28–17:43  ChatGPT  | Coding (confidence: 1.00)\n- 17:47–18:02  NetEase Cloud Music  | Other (confidence: 1.00)\n- 18:06–18:21  ChatGPT  | Coding (confidence: 1.00)\n- 18:25–18:40  Gmail  | Email (confidence: 1.00)\n- 18:44–19:37  ChatGPT  | Coding (confidence: 1.00)\n- 19:41–19:56  WeChat  | Messaging (confidence: 0.95)\n- 20:00–20:15  Gmail  | Email (confidence: 1.00)\nSegments (structured):\n- 08:00-08:33 | ChatGPT | Coding | 34min | conf=1.0\n- 08:37-08:52 | Microsoft OneNote | Writing/Reading | 15min | conf=1.0\n- 08:56-09:11 | Devpost | Browsing | 15min | conf=1.0\n- 09:15-09:30 | Canvas | Browsing | 15min | conf=1.0\n- 09:34-11:43 | ChatGPT | Coding | 129min | conf=1.0\n- 11:47-12:02 | GitHub | Coding | 15min | conf=1.0\n- 12:06-12:21 | Microsoft OneNote | Writing/Reading | 15min | conf=1.0\n- 12:25-12:40 | Canvas | Browsing | 15min | conf=1.0\n- 12:44-15:30 | ChatGPT | Coding | 167min | conf=1.0\n- 15:34-15:49 | Visual Studio Code | Coding | 15min | conf=1.0\n- 15:53-16:08 | ChatGPT | Coding | 15min | conf=1.0\n- 16:12-16:27 | WeChat | Messaging | 15min | conf=1.0\n- 16:31-16:46 | Visual Studio Code | Coding | 15min | conf=1.0\n- 16:50-17:05 | ChatGPT | Coding | 15min | conf=1.0\n- 17:09-17:24 | GitHub | Coding | 15min | conf=1.0\n- 17:28-17:43 | ChatGPT | Coding | 15min | conf=1.0\n- 17:47-18:02 | NetEase Cloud Music | Other | 15min | conf=1.0\n- 18:06-18:21 | ChatGPT | Coding | 15min | conf=1.0\n- 18:25-18:40 | Gmail | Email | 15min | conf=1.0\n- 18:44-19:37 | ChatGPT | Coding | 53min | conf=1.0\n- 19:41-19:56 | WeChat | Messaging | 15min | conf=0.95\n- 20:00-20:15 | Gmail | Email | 15min | conf=1.0"
+    }
+  },
+  "ui_modules": {
+    "main_timeline_module": "Render timeline_human_readable + segments",
+    "secondary_image_module": "Show redraw image + short caption",
+    "secondary_caring_module": "Show caring_message + quote + humor_alt"
+  }
+}
