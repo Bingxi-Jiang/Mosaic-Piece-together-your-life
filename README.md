@@ -46,6 +46,8 @@ test_generation: 生成所有用于【网页】的原始数据
 
 ## TODO
 
+[技术报告link](https://docs.google.com/document/d/1F85HuejYfe3ML9heM1xdtx68Vv-Pm2eYJL_ZSMMWx94/edit?usp=sharing)
+
 - [ ] 正反馈(多种形式鼓励【UI】)(AI生成个人形象) H H
 - [ ] 关联其他应用(日历/todo-list) 任意能调用api的日历 P S
 - [ ] 隐私问题(本地存储)(识别浏览器网页黑名单) P S
