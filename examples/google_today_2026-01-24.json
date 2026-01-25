@@ -1,0 +1,30 @@
+{
+    "report_date": "2026-01-24",
+    "export_timestamp": "2026-01-24T18:16:09.287302",
+    "calendar": {
+        "summary": "今日日历事件",
+        "items": [
+            {
+                "title": "Test Google Calendar",
+                "start": "2026-01-24T19:30:00-08:00",
+                "location": "N/A"
+            },
+            {
+                "title": "Finish scholarship application",
+                "start": "2026-01-24T20:30:00-08:00",
+                "location": "N/A"
+            }
+        ]
+    },
+    "tasks": {
+        "summary": "今日截止任务",
+        "items": [
+            {
+                "title": "Finish scholarship application",
+                "list_source": "我的任务",
+                "status": "needsAction",
+                "notes": ""
+            }
+        ]
+    }
+}
