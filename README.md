@@ -1,34 +1,42 @@
 # Mosaic-Piece-together-your-life
-\
+<br>
 ******
-\
-\
+<br>
+<br>
 我的gemini key: GOOGLE_KEY (付费版)
-\
+<br>
 Dayflow的链接: [Dayflow](https://github.com/JerryZLiu/Dayflow)
-\
-\
+<br>
+<br>
 # test_fucntions
 test文件都是零时的，正式版不会保留，并且每个test文件都serve as one single purpose
 ### 生成
 test_generation: 生成所有用于【网页】的原始数据
 ### 捕获
 screenshots: 存储截图文件夹(归档方式按照 年-月-日)
-\
+<br>
 screenshots_test: 测试文件夹
-\
+<br>
 test_random_screenshots: 用于生成screenshots_test文件夹，通过读取screenshots【当日】现有文件
-\
+<br>
 test_screenshots: 截图function(目前为了方便测试是5秒一截屏，正常情况是15min一截屏)
-\
+<br>
 test_timeline: 生成timeline的json文件(json文件会生成在对应screenshots文件夹的当日文件夹里面)
+<br>
+test_google_calendar: 获取用户当日日历内容(Google的日历是包含todo list的)
+<br>
+test_google_tasks: 获取用户当日todo list
+<br>
+test_export_google_info: 合并calendar和tasks并且导出到google_today_y_m_d.json
 # examples
 daily_report_y-m-d.json: 每日报告的例子(默认存储路径在对应的screenshots里面)
-\
+<br>
 example_template: 当日截图分析的输出模板(具体例子参考timeline_y-m-d.json)【y-m-d指年-月-日，比如2026-01-17】
-\
+<br>
+google_today_y_m_d.json: 存储当日来自Google calendar和tasks的数据
+<br>
 redraw_y-m-d_style.jpg: Gemini3生成的照片去描述这一天。style指绘画风格，目前设置了7种风格: [风格设置位置(32-33行)](test_generation.py#L32-L33)，[具体风格prompt位置](test_generation.py#L129-L187)
-\
+<br>
 timeline_y-m-d.json: 最终的文件，也是web读取的数据
 # 网页
 在terminal运行`python -m http.server 8000`，然后去浏览器输入`http://localhost:8000/web/`，再看右上角的`load`去加载文件。
