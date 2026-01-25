@@ -14,17 +14,20 @@ screenshots: 存储截图文件夹(归档方式按照 年-月-日)<br>
 
 screenshots_test: 测试文件夹<br>
 
+test_check_app.py: 针对windows监控打开的窗口(不检测后台运行)
+
+test_export_google_info: 合并calendar和tasks并且导出到google_today_y_m_d.json<br>
+
+test_google_calendar: 获取用户当日日历内容(Google的日历是包含todo list的)<br>
+
+test_google_tasks: 获取用户当日todo list<br>
+
 test_random_screenshots: 用于生成screenshots_test文件夹，通过读取screenshots【当日】现有文件<br>
 
 test_screenshots: 截图function(目前为了方便测试是5秒一截屏，正常情况是15min一截屏)<br>
 
 test_timeline: 生成timeline的json文件(json文件会生成在对应screenshots文件夹的当日文件夹里面)<br>
 
-test_google_calendar: 获取用户当日日历内容(Google的日历是包含todo list的)<br>
-
-test_google_tasks: 获取用户当日todo list<br>
-
-test_export_google_info: 合并calendar和tasks并且导出到google_today_y_m_d.json<br>
 # examples
 daily_report_y-m-d.json: 每日报告的例子(默认存储路径在对应的screenshots里面)<br>
 
