@@ -1,53 +1,175 @@
-# Mosaic-Piece-together-your-life
+# Artified Backend (Integrated)
 
-******
+A small backend that:
+1) captures desktop screenshots on a fixed interval,
+2) pauses capture when a blacklist app/window is visible,
+3) turns screenshots into a day timeline (Gemini),
+4) generates lightweight feedback events,
+5) optionally exports Google Calendar + Tasks (today),
+6) produces a daily report JSON + one “redraw of the day” image (Gemini image model).
 
-我的gemini key: GOOGLE_KEY (付费版)<br>
-Dayflow的链接: [Dayflow](https://github.com/JerryZLiu/Dayflow)<br>
+It is designed so a future Web UI / desktop app can read stable JSON artifacts from one folder.
 
-# test_fucntions
-test文件都是零时的，正式版不会保留，并且每个test文件都serve as one single purpose<br>
-### 生成
-test_generation: 生成所有用于【网页】的原始数据<br>
-### 捕获
-screenshots: 存储截图文件夹(归档方式按照 年-月-日)<br>
+---
 
-screenshots_test: 测试文件夹<br>
+## Folder output
 
-test_check_app.py: 针对windows监控打开的窗口(不检测后台运行)
+Screenshots are saved into a day folder:
 
-test_export_google_info: 合并calendar和tasks并且导出到google_today_y_m_d.json<br>
+```
+screenshots/YYYY/Month/DD/HH-MM-SS.png
+```
 
-test_google_calendar: 获取用户当日日历内容(Google的日历是包含todo list的)<br>
+Artifacts are saved into:
 
-test_google_tasks: 获取用户当日todo list<br>
+```
+<day_dir>/artifacts/
+  timeline_YYYY-MM-DD.json
+  feedback_events_YYYY-MM-DD.json
+  google_today_YYYY-MM-DD.json        (optional)
+  daily_report_YYYY-MM-DD.json
+  redraw_YYYY-MM-DD_<style>.png
+```
 
-test_random_screenshots: 用于生成screenshots_test文件夹，通过读取screenshots【当日】现有文件<br>
+A session log is appended into:
 
-test_screenshots: 截图function(目前为了方便测试是5秒一截屏，正常情况是15min一截屏)<br>
+```
+<day_dir>/session_log.jsonl
+```
 
-test_timeline: 生成timeline的json文件(json文件会生成在对应screenshots文件夹的当日文件夹里面)<br>
+---
 
-# examples
-daily_report_y-m-d.json: 每日报告的例子(默认存储路径在对应的screenshots里面)<br>
+## What each module does
 
-example_template: 当日截图分析的输出模板(具体例子参考timeline_y-m-d.json)【y-m-d指年-月-日，比如2026-01-17】<br>
+### `main.py`
+The CLI entrypoint.
+- `run`: real capture loop (screenshot + blacklist pause). When stop time is reached, it also builds artifacts.
+- `simulate-day`: creates a fake “full day” folder by shuffling existing screenshots.
+- `build-all`: builds artifacts for an existing day folder (no screenshot capture).
 
-google_today_y_m_d.json: 存储当日来自Google calendar和tasks的数据<br>
+### `services/screenshot_service.py`
+Takes one screenshot using `PIL.ImageGrab` and saves it as `HH-MM-SS.png`.
 
-redraw_y-m-d_style.jpg: Gemini3生成的照片去描述这一天。style指绘画风格，目前设置了7种风格: [风格设置位置(32-33行)](test_generation.py#L32-L33)，[具体风格prompt位置](test_generation.py#L129-L187)<br>
+### `services/app_monitor.py`
+Checks visible window titles (via `pygetwindow`) against `blacklist_keywords`.
+If a hit is found, capture is paused until the window is no longer visible.
 
-timeline_y-m-d.json: 最终的文件，也是web读取的数据
-# 网页
-在terminal运行`python -m http.server 8000`，然后去浏览器输入`http://localhost:8000/web/`，再看右上角的`load`去加载文件。
+### `pipelines/timeline_pipeline.py`
+Reads screenshots in a day folder and calls Gemini (text model) to label each screenshot.
+It then merges frames into segments and writes `timeline_*.json`.
 
-## TODO
+Important:
+- Segment timing is based on **real screenshot timestamps** in filenames.
+- `capture_interval_minutes` in the output JSON is **inferred from the median gap** between screenshots.
+- Smooth transitions: segment boundaries use **midpoints** between screenshots when the activity changes.
+- Best-effort idle detection: if two consecutive screenshots are far apart and almost identical, an **Idle** segment is carved out.
 
-[技术报告link](https://docs.google.com/document/d/1F85HuejYfe3ML9heM1xdtx68Vv-Pm2eYJL_ZSMMWx94/edit?usp=sharing)
+### `pipelines/trigger_pipeline.py`
+Generates simple “feedback events” from the timeline segments.
+It is intentionally low frequency (hour-level reminders) and message text varies.
 
-- [ ] 正反馈(多种形式鼓励【UI】)(AI生成个人形象) H H
-- [ ] 关联其他应用(日历/todo-list) 任意能调用api的日历 P S
-- [ ] 隐私问题(本地存储)(识别浏览器网页黑名单) P S
-- [ ] 停止截图/接收报告时间【默认7-23】(用户可以手动调整接收报告的时间)(后续: 学习时间) H H
-- [ ] 关联移动端(icloud not app)
-- [ ] 封装+UI(动画)
+### `pipelines/google_export_pipeline.py`
+(Optional) Exports today’s Google Calendar events and Tasks due today.
+Requires OAuth files (`credentials.json` + token file).
+
+### `pipelines/daily_report_pipeline.py`
+Creates:
+- a vibe + caring message JSON (Gemini text),
+- a “redraw of the day” image (Gemini image model),
+- a combined `daily_report_*.json`.
+
+### `tools/simulate_day.py`
+Creates a fake day folder from existing screenshots (for testing without waiting all day).
+
+---
+
+## Quick start
+
+### 1) Install dependencies (typical)
+You’ll need packages used by the scripts:
+- pillow
+- pygetwindow
+- google-genai
+- google-api-python-client
+- google-auth, google-auth-oauthlib
+
+(Exact install command depends on your environment.)
+
+### 2) Set Gemini API key
+Set the environment variable:
+
+**Windows PowerShell**
+```powershell
+$env:GEMINI_API_KEY="YOUR_KEY"
+```
+
+**macOS/Linux**
+```bash
+export GEMINI_API_KEY="YOUR_KEY"
+```
+
+---
+
+## Common commands
+
+### A) Capture screenshots every 3 seconds
+This writes into `screenshots/YYYY/Month/DD/`:
+
+```bash
+python main.py run --interval 3
+```
+
+By default, it stops at 23:00 local time. You can change stop time:
+
+```bash
+python main.py run --interval 3 --stop 23:59
+```
+
+Note: `run` will also build timeline/report after stop time is reached.
+
+---
+
+### B) Create a simulated test day (`screenshots_test`)
+This is used to test the full pipeline quickly:
+
+```bash
+python main.py simulate-day --source screenshots --outroot screenshots_test --seed 42
+```
+
+It will output a new day folder like:
+```
+screenshots_test/YYYY/Month/DD/
+```
+
+---
+
+### C) Build timeline + report for an existing day folder
+Use this if you already have screenshots and want artifacts immediately:
+
+```bash
+python main.py build-all --daydir screenshots_test/2026/January/31 --date 2026-01-31
+```
+
+---
+
+## Configuration
+
+Most knobs are in `config.py` (class `AppConfig`), for example:
+- screenshot interval / stop time
+- blacklist keywords
+- Gemini models
+- idle detection thresholds:
+  - `idle_gap_minutes`
+  - `idle_similarity_threshold`
+  - `idle_margin_minutes`
+- report style preset (`style_preset`)
+
+---
+
+## Notes / troubleshooting
+
+- Screenshot capture uses `PIL.ImageGrab`, which may require permissions on macOS.
+- `pygetwindow` window listing behavior depends on OS/window manager.
+- Google export is optional. If `credentials.json` is missing, the pipeline will skip Google and continue.
+- If Gemini returns non-JSON text, you’ll see a JSON parse error. Tighten the prompt or reduce temperature.
+
