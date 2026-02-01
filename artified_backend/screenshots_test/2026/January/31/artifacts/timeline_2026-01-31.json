@@ -1,0 +1,295 @@
+{
+  "schema_version": "2.0",
+  "date_local": "2026-01-31",
+  "timezone": "America/Los_Angeles",
+  "capture_interval_minutes": 55,
+  "timeline_human_readable": [
+    "08:00–08:27  Microsoft OneNote  | Writing/Reading (confidence: 1.00)",
+    "08:27–09:23  Microsoft Excel  | Writing/Reading (confidence: 1.00)",
+    "09:23–10:18  Gmail  | Email (confidence: 1.00)",
+    "10:18–11:13  JupyterLab  | Coding (confidence: 1.00)",
+    "11:13–12:09  VS Code  | Coding (confidence: 1.00)",
+    "12:09–13:04  Microsoft Excel  | Writing/Reading (confidence: 1.00)",
+    "13:04–14:00  Canvas  | Writing/Reading (confidence: 1.00)",
+    "14:00–14:55  Windows File Explorer  | File Management (confidence: 1.00)",
+    "14:55–15:50  NetEase Cloud Music  | Other (confidence: 1.00)",
+    "15:50–16:46  ChatGPT  | Coding (confidence: 1.00)",
+    "16:46–17:41  Google Drive  | Writing/Reading (confidence: 1.00)",
+    "17:41–19:32  VS Code  | Coding (confidence: 1.00)",
+    "19:32–20:55  NetEase Cloud Music  | Other (confidence: 1.00)"
+  ],
+  "timeline_segments": [
+    {
+      "segment_id": "S001",
+      "start_time_local": "08:00",
+      "end_time_local": "08:27",
+      "duration_minutes": 28,
+      "dominant_surface": "Microsoft OneNote",
+      "activity": "Writing/Reading",
+      "context_detail": "Taking notes on SQL CREATE TABLE statements and constraints for a computer science course.",
+      "confidence": 1.0,
+      "supporting_surfaces": [
+        "Windows Taskbar",
+        "Visual Studio Code"
+      ],
+      "evidence_frames": [
+        "08-00-00.png"
+      ],
+      "notes": "The user is actively using OneNote to document SQL syntax and database constraints for 'CompSci 122A'. VS Code is visible in the taskbar, suggesting a coding-related study session.",
+      "risk_flags": [
+        "none"
+      ]
+    },
+    {
+      "segment_id": "S002",
+      "start_time_local": "08:27",
+      "end_time_local": "09:23",
+      "duration_minutes": 55,
+      "dominant_surface": "Microsoft Excel",
+      "activity": "Writing/Reading",
+      "context_detail": "Managing a spreadsheet of college application deadlines and requirements.",
+      "confidence": 1.0,
+      "supporting_surfaces": [
+        "Bandizip",
+        "Windows Taskbar"
+      ],
+      "evidence_frames": [
+        "08-55-23.png"
+      ],
+      "notes": "The user is primarily interacting with an Excel spreadsheet containing university application information. A file archiver (Bandizip) is open on top, showing backend code files.",
+      "risk_flags": [
+        "none"
+      ]
+    },
+    {
+      "segment_id": "S003",
+      "start_time_local": "09:23",
+      "end_time_local": "10:18",
+      "duration_minutes": 55,
+      "dominant_surface": "Gmail",
+      "activity": "Email",
+      "context_detail": "Viewing inbox with promotional and notification emails",
+      "confidence": 1.0,
+      "supporting_surfaces": [
+        "Windows Taskbar",
+        "Chrome Browser"
+      ],
+      "evidence_frames": [
+        "09-50-46.png"
+      ],
+      "notes": "The user is clearly viewing their Gmail inbox in a web browser.",
+      "risk_flags": [
+        "none"
+      ]
+    },
+    {
+      "segment_id": "S004",
+      "start_time_local": "10:18",
+      "end_time_local": "11:13",
+      "duration_minutes": 55,
+      "dominant_surface": "JupyterLab",
+      "activity": "Coding",
+      "context_detail": "Terminal output showing file extraction for a C++ project (Calculator) using CMake.",
+      "confidence": 1.0,
+      "supporting_surfaces": [
+        "Chrome",
+        "Gmail"
+      ],
+      "evidence_frames": [
+        "10-46-09.png"
+      ],
+      "notes": "The user is working in a JupyterLab environment, specifically using a terminal tab to manage files for a programming assignment (ICS 46 HW2).",
+      "risk_flags": [
+        "none"
+      ]
+    },
+    {
+      "segment_id": "S005",
+      "start_time_local": "11:13",
+      "end_time_local": "12:09",
+      "duration_minutes": 55,
+      "dominant_surface": "VS Code",
+      "activity": "Coding",
+      "context_detail": "Editing session_log.jsonl and running python main.py in the terminal",
+      "confidence": 1.0,
+      "supporting_surfaces": [
+        "Terminal",
+        "File Explorer"
+      ],
+      "evidence_frames": [
+        "11-41-32.png"
+      ],
+      "notes": "The user is working in VS Code, specifically looking at a JSONL log file and executing a Python script in the integrated terminal.",
+      "risk_flags": [
+        "none"
+      ]
+    },
+    {
+      "segment_id": "S006",
+      "start_time_local": "12:09",
+      "end_time_local": "13:04",
+      "duration_minutes": 55,
+      "dominant_surface": "Microsoft Excel",
+      "activity": "Writing/Reading",
+      "context_detail": "Managing college application requirements and deadlines in a spreadsheet",
+      "confidence": 1.0,
+      "supporting_surfaces": [
+        "Windows Taskbar"
+      ],
+      "evidence_frames": [
+        "12-36-55.png"
+      ],
+      "notes": "The user is viewing and likely editing an Excel spreadsheet containing information about university application deadlines, systems, and transcript requirements for schools like CMU, UW, and UIUC.",
+      "risk_flags": [
+        "none"
+      ]
+    },
+    {
+      "segment_id": "S007",
+      "start_time_local": "13:04",
+      "end_time_local": "14:00",
+      "duration_minutes": 55,
+      "dominant_surface": "Canvas",
+      "activity": "Writing/Reading",
+      "context_detail": "Viewing course materials for History 40B: Crisis and Expansion",
+      "confidence": 1.0,
+      "supporting_surfaces": [
+        "Edge Browser",
+        "Gmail"
+      ],
+      "evidence_frames": [
+        "13-32-18.png"
+      ],
+      "notes": "The user is on a Canvas course page looking at readings and quizzes for Week 4 and Week 5 of a history class.",
+      "risk_flags": [
+        "none"
+      ]
+    },
+    {
+      "segment_id": "S008",
+      "start_time_local": "14:00",
+      "end_time_local": "14:55",
+      "duration_minutes": 55,
+      "dominant_surface": "Windows File Explorer",
+      "activity": "File Management",
+      "context_detail": "Managing files in a Python project directory named 'artified_backend'",
+      "confidence": 1.0,
+      "supporting_surfaces": [
+        "Windows Taskbar"
+      ],
+      "evidence_frames": [
+        "14-27-42.png"
+      ],
+      "notes": "The user is browsing a backend project folder containing Python files like main.py and config.py.",
+      "risk_flags": [
+        "none"
+      ]
+    },
+    {
+      "segment_id": "S009",
+      "start_time_local": "14:55",
+      "end_time_local": "15:50",
+      "duration_minutes": 55,
+      "dominant_surface": "NetEase Cloud Music",
+      "activity": "Other",
+      "context_detail": "Listening to Mic Check (Camo & Krooked Remix) from the Asphalt 8: Airborne soundtrack",
+      "confidence": 1.0,
+      "supporting_surfaces": [],
+      "evidence_frames": [
+        "15-23-05.png"
+      ],
+      "notes": "The screenshot shows the full-screen player interface of NetEase Cloud Music (网易云音乐) with lyrics and album art visible.",
+      "risk_flags": [
+        "none"
+      ]
+    },
+    {
+      "segment_id": "S010",
+      "start_time_local": "15:50",
+      "end_time_local": "16:46",
+      "duration_minutes": 55,
+      "dominant_surface": "ChatGPT",
+      "activity": "Coding",
+      "context_detail": "Reviewing Python script commands for automated screenshot capture and processing.",
+      "confidence": 1.0,
+      "supporting_surfaces": [
+        "Gmail",
+        "Browser Bookmarks"
+      ],
+      "evidence_frames": [
+        "16-18-28.png"
+      ],
+      "notes": "The user is interacting with ChatGPT to get instructions on how to run a Python script ('main.py') with specific arguments for interval-based screen capture.",
+      "risk_flags": [
+        "none"
+      ]
+    },
+    {
+      "segment_id": "S011",
+      "start_time_local": "16:46",
+      "end_time_local": "17:41",
+      "duration_minutes": 55,
+      "dominant_surface": "Google Drive",
+      "activity": "Writing/Reading",
+      "context_detail": "Reading a lab assignment PDF for a computer science course (ICS 46) about a postfix expression calculator.",
+      "confidence": 1.0,
+      "supporting_surfaces": [
+        "Chrome Browser"
+      ],
+      "evidence_frames": [
+        "17-13-51.png"
+      ],
+      "notes": "The user is viewing a PDF document titled 'ICS 46 - Winter 2026 - Lab 3.pdf' hosted on Google Drive. The content describes a stack-based calculator implementation.",
+      "risk_flags": [
+        "none"
+      ]
+    },
+    {
+      "segment_id": "S012",
+      "start_time_local": "17:41",
+      "end_time_local": "19:32",
+      "duration_minutes": 111,
+      "dominant_surface": "VS Code",
+      "activity": "Coding",
+      "context_detail": "Editing a JSONL session log file and running a Python script in the integrated terminal.",
+      "confidence": 1.0,
+      "supporting_surfaces": [
+        "Terminal",
+        "File Explorer",
+        "Windows Task Switcher"
+      ],
+      "evidence_frames": [
+        "18-09-14.png",
+        "19-04-37.png"
+      ],
+      "notes": "The user is working in VS Code, specifically looking at a log file and executing commands in the terminal to set environment variables and run a Python script.",
+      "risk_flags": [
+        "none"
+      ]
+    },
+    {
+      "segment_id": "S013",
+      "start_time_local": "19:32",
+      "end_time_local": "20:55",
+      "duration_minutes": 83,
+      "dominant_surface": "NetEase Cloud Music",
+      "activity": "Other",
+      "context_detail": "Listening to Mic Check (Camo & Krooked Remix) from the Asphalt 8: Airborne soundtrack",
+      "confidence": 1.0,
+      "supporting_surfaces": [],
+      "evidence_frames": [
+        "20-00-00.png"
+      ],
+      "notes": "The user is using the desktop application for NetEase Cloud Music, as indicated by the UI layout, Chinese text, and specific player controls.",
+      "risk_flags": [
+        "none"
+      ]
+    }
+  ],
+  "preprocess": {
+    "preprocess_enabled": true,
+    "screen_resolution_inferred": "2560x1440",
+    "target_long_edge": 1408,
+    "format": "png"
+  }
+}
