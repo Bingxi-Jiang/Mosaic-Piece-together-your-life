@@ -1,0 +1,11 @@
+{
+    "blocked_apps": [
+        "WeChat",
+        "1Password",
+        "Notes"
+    ],
+    "blocked_keywords": [
+        "bank",
+        "login"
+    ]
+}
