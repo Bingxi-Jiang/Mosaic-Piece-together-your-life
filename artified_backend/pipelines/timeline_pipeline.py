@@ -4,13 +4,15 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, date, timedelta
 from typing import List, Dict, Any, Optional, Tuple
+import re
+import random
 
 from PIL import Image
 from google import genai
 from google.genai import types
 
-from config import AppConfig
-from utils_paths import ensure_dir
+from ..config import AppConfig
+from ..utils_paths import ensure_dir
 
 
 def _infer_capture_interval_minutes(frame_times: List[datetime], fallback: int) -> int:
@@ -18,15 +20,14 @@ def _infer_capture_interval_minutes(frame_times: List[datetime], fallback: int) 
         return max(1, int(fallback))
     deltas = []
     for i in range(len(frame_times) - 1):
-        dt = (frame_times[i + 1] - frame_times[i]).total_seconds() / 60.0
-        if dt > 0:
-            deltas.append(dt)
+        dtm = (frame_times[i + 1] - frame_times[i]).total_seconds() / 60.0
+        if dtm > 0:
+            deltas.append(dtm)
     if not deltas:
         return max(1, int(fallback))
     deltas.sort()
     mid = len(deltas) // 2
     median = deltas[mid] if len(deltas) % 2 == 1 else (deltas[mid - 1] + deltas[mid]) / 2.0
-    # Round to nearest minute
     return max(1, int(round(median)))
 
 
@@ -57,6 +58,7 @@ def _image_similarity(path_a: str, path_b: str) -> float:
     except Exception:
         return 0.0
 
+
 @dataclass
 class FrameResult:
     dt: datetime
@@ -84,20 +86,65 @@ def _parse_time_from_filename(filename: str) -> Optional[Tuple[int, int, int]]:
 
 
 def _list_day_images(day_dir: str, day_date: date) -> List[Tuple[datetime, str]]:
-    items: List[Tuple[datetime, str]] = []
+    """
+    Return list of (dt_local, filename) sorted by time.
+    Supports:
+      - shot_YYYYMMDD_HHMMSS.png
+      - screenshot_YYYYMMDD_HHMMSS.png
+      - shot_HHMMSS.png  (older)
+      - any png/jpg/jpeg as fallback (uses mtime)
+    """
     if not os.path.isdir(day_dir):
-        return items
-    for name in os.listdir(day_dir):
-        lower = name.lower()
-        if not (lower.endswith(".png") or lower.endswith(".jpg") or lower.endswith(".jpeg")):
+        return []
+
+    out: List[Tuple[datetime, str]] = []
+    names = sorted(os.listdir(day_dir))
+
+    # common formats
+    re_full = re.compile(r"^(?:shot|screenshot)_(\d{8})_(\d{6})\.(png|jpe?g)$", re.IGNORECASE)
+    re_hms  = re.compile(r"^(?:shot|screenshot)_(\d{6})\.(png|jpe?g)$", re.IGNORECASE)
+
+    for name in names:
+        if not name.lower().endswith((".png", ".jpg", ".jpeg")):
             continue
-        t = _parse_time_from_filename(name)
-        if not t:
-            continue
-        dt = datetime(day_date.year, day_date.month, day_date.day, t[0], t[1], t[2])
-        items.append((dt, name))
-    items.sort(key=lambda x: x[0])
-    return items
+
+        m = re_full.match(name)
+        if m:
+            ymd, hms = m.group(1), m.group(2)
+            try:
+                dt_local = datetime.strptime(ymd + hms, "%Y%m%d%H%M%S")
+                # ✅ 只收当天（避免混入别的日期）
+                if dt_local.date() == day_date:
+                    out.append((dt_local, name))
+                continue
+            except Exception:
+                pass
+
+        m = re_hms.match(name)
+        if m:
+            hms = m.group(1)
+            try:
+                hh, mm, ss = int(hms[0:2]), int(hms[2:4]), int(hms[4:6])
+                dt_local = datetime.combine(day_date, time(hh, mm, ss))
+                out.append((dt_local, name))
+                continue
+            except Exception:
+                pass
+
+        # Fallback: use file mtime (still deterministic)
+        try:
+            p = os.path.join(day_dir, name)
+            dt_local = datetime.fromtimestamp(os.path.getmtime(p))
+            if dt_local.date() != day_date:
+                dt_local = datetime.combine(day_date, dt_local.time())
+            out.append((dt_local, name))
+        except Exception:
+            # last resort: day start
+            out.append((datetime.combine(day_date, time(0, 0, 0)), name))
+
+    out.sort(key=lambda x: x[0])
+    return out
+
 
 
 def _mime_type_for_ext(ext: str) -> str:
@@ -161,6 +208,32 @@ def _normalize_frame_json(raw: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _extract_first_json_object(text: str) -> Optional[str]:
+    if not text:
+        return None
+    s = text.strip()
+    if s.startswith("{") and s.endswith("}"):
+        return s
+    m = re.search(r"\{[\s\S]*\}", s)
+    if not m:
+        return None
+    return m.group(0).strip()
+
+
+def _loads_json_strict(text: str) -> Dict[str, Any]:
+    if not text or not text.strip():
+        raise ValueError("Empty model text")
+
+    s = text.strip()
+    try:
+        return json.loads(s)
+    except Exception:
+        extracted = _extract_first_json_object(s)
+        if not extracted:
+            raise
+        return json.loads(extracted)
+
+
 def _read_image_size(path: str) -> Tuple[int, int]:
     with Image.open(path) as im:
         return im.size
@@ -219,7 +292,42 @@ def _preprocess_image_bytes(cfg: AppConfig, src_path: str, target_long_edge: int
     return data, mime, stats
 
 
-def _merge_frames_into_segments(cfg: AppConfig, frames: List[FrameResult], day_dir: str) -> List[Dict[str, Any]]:
+def _call_generate_content_with_quota_retry(client, model: str, contents, config, max_retries: int = 6):
+    """
+    Retry generate_content when hitting 429 quota exceeded.
+    Uses server-provided retryDelay if present ("Please retry in XXs").
+    """
+    for attempt in range(max_retries + 1):
+        try:
+            return client.models.generate_content(
+                model=model,
+                contents=contents,
+                config=config,
+            )
+        except Exception as e:
+            msg = str(e)
+
+            # Only handle quota/429
+            if ("429" not in msg) and ("RESOURCE_EXHAUSTED" not in msg):
+                raise
+
+            # Parse "Please retry in XXs"
+            delay = None
+            m = re.search(r"Please retry in\s+([0-9.]+)s", msg)
+            if m:
+                delay = float(m.group(1))
+            else:
+                # fallback exponential backoff with jitter
+                delay = min(60.0, (2.0 ** attempt)) + random.uniform(0.0, 1.0)
+
+            if attempt >= max_retries:
+                raise
+
+            print(f"[quota] hit 429, sleeping {delay:.1f}s then retry (attempt {attempt+1}/{max_retries})...")
+            time.sleep(delay)
+
+
+def _merge_frames_into_segments(cfg: AppConfig, frames: List[FrameResult], day_dir: str):
     """
     Builds segments using real screenshot timestamps.
     - Transition boundaries use midpoints between screenshots when surface/activity changes (smooth flow).
@@ -227,16 +335,13 @@ def _merge_frames_into_segments(cfg: AppConfig, frames: List[FrameResult], day_d
     - Best-effort Idle carving: if two consecutive frames are very similar and far apart, carve out an Idle segment.
     """
     if not frames:
-        return []
+        return [], max(1, int(cfg.capture_interval_minutes))
 
-    # Infer interval from real timestamps (median delta), fallback to cfg.capture_interval_minutes
     frame_times = [fr.dt for fr in frames]
     inferred_interval = _infer_capture_interval_minutes(frame_times, cfg.capture_interval_minutes)
 
-    # Group consecutive frames by bucket
     buckets = [(fr.dominant_surface, fr.activity) for fr in frames]
 
-    # Build initial segments using bucket runs and midpoint boundaries
     initial = []
     start_idx = 0
     n = len(frames)
@@ -250,19 +355,16 @@ def _merge_frames_into_segments(cfg: AppConfig, frames: List[FrameResult], day_d
         while end_idx + 1 < n and buckets[end_idx + 1] == bkt:
             end_idx += 1
 
-        # segment start boundary: midpoint between prev frame and first frame of this run (if different bucket)
         if start_idx == 0:
             seg_start = frames[start_idx].dt
         else:
             seg_start = boundary_mid(frames[start_idx - 1].dt, frames[start_idx].dt)
 
-        # segment end boundary: midpoint between last frame of this run and next frame (if exists), else fallback interval
         if end_idx < n - 1:
             seg_end = boundary_mid(frames[end_idx].dt, frames[end_idx + 1].dt)
         else:
             seg_end = frames[end_idx].dt + timedelta(minutes=inferred_interval)
 
-        # collect info
         chunk = frames[start_idx:end_idx + 1]
         first = chunk[0]
 
@@ -295,8 +397,6 @@ def _merge_frames_into_segments(cfg: AppConfig, frames: List[FrameResult], day_d
 
         start_idx = end_idx + 1
 
-    # Idle carving intervals from consecutive frames across the full day
-    # If two consecutive screenshots are very similar AND far apart, we carve out an Idle interval.
     idle_intervals: List[Tuple[datetime, datetime, float]] = []
     for i in range(n - 1):
         a = frames[i]
@@ -310,26 +410,22 @@ def _merge_frames_into_segments(cfg: AppConfig, frames: List[FrameResult], day_d
         if sim < cfg.idle_similarity_threshold:
             continue
 
-        # carve idle excluding small margins around captures
         margin = min(cfg.idle_margin_minutes, int(delta_min / 4))
-        start = a.dt + timedelta(minutes=margin)
-        end = b.dt - timedelta(minutes=margin)
-        if end > start:
-            idle_intervals.append((start, end, sim))
+        istart = a.dt + timedelta(minutes=margin)
+        iend = b.dt - timedelta(minutes=margin)
+        if iend > istart:
+            idle_intervals.append((istart, iend, sim))
 
-    # Apply interval carving: subtract idle intervals from segments, then insert Idle segments
     def subtract_interval(seg, cut_start: datetime, cut_end: datetime):
         s = seg["start_dt"]
         e = seg["end_dt"]
         if cut_end <= s or cut_start >= e:
-            return [seg]  # no overlap
+            return [seg]
         out = []
-        # left part
         if cut_start > s:
             left = dict(seg)
             left["end_dt"] = cut_start
             out.append(left)
-        # right part
         if cut_end < e:
             right = dict(seg)
             right["start_dt"] = cut_end
@@ -359,7 +455,6 @@ def _merge_frames_into_segments(cfg: AppConfig, frames: List[FrameResult], day_d
     all_segments = carved + idle_segments
     all_segments.sort(key=lambda s: s["start_dt"])
 
-    # Normalize + assign IDs and HH:MM fields
     segments: List[Dict[str, Any]] = []
     for idx, seg in enumerate(all_segments, start=1):
         duration_minutes = int(round((seg["end_dt"] - seg["start_dt"]).total_seconds() / 60))
@@ -383,7 +478,6 @@ def _merge_frames_into_segments(cfg: AppConfig, frames: List[FrameResult], day_d
     return segments, inferred_interval
 
 
-
 def _segments_to_human_lines(segments: List[Dict[str, Any]]) -> List[str]:
     lines: List[str] = []
     for seg in segments:
@@ -403,6 +497,15 @@ def build_timeline(cfg: AppConfig, day_dir: str, day_date: date, out_dir: str) -
     if not images:
         raise RuntimeError(f"No images found in: {day_dir}")
 
+    # -------- quota-safe sampling --------
+    stride = max(1, int(getattr(cfg, "timeline_sample_stride", 1)))
+    max_frames = max(1, int(getattr(cfg, "timeline_max_frames", 999999)))
+    images = images[::stride]
+    if len(images) > max_frames:
+        images = images[:max_frames]
+    print(f"[timeline] using {len(images)} frames (stride={stride}, max_frames={max_frames})")
+    # -----------------------------------
+
     client = genai.Client(api_key=api_key)
 
     first_path = os.path.join(day_dir, images[0][1])
@@ -417,6 +520,11 @@ def build_timeline(cfg: AppConfig, day_dir: str, day_date: date, out_dir: str) -
         "format": cfg.preprocess_format.lower(),
     }
 
+    # Safety: if user forgot to bump request_sleep_seconds, at least avoid spamming
+    sleep_s = float(getattr(cfg, "request_sleep_seconds", 0.0) or 0.0)
+    if sleep_s < 0:
+        sleep_s = 0.0
+
     for dt_local, filename in images:
         path = os.path.join(day_dir, filename)
 
@@ -429,19 +537,34 @@ def build_timeline(cfg: AppConfig, day_dir: str, day_date: date, out_dir: str) -
             mime = _mime_type_for_ext(ext)
 
         prompt = _build_frame_prompt(dt_local, filename)
-        resp = client.models.generate_content(
+
+        resp = _call_generate_content_with_quota_retry(
+            client=client,
             model=cfg.gemini_text_model,
             contents=[types.Part.from_bytes(data=img_bytes, mime_type=mime), prompt],
             config=types.GenerateContentConfig(
-                thinking_config=types.ThinkingConfig(thinking_level="low"),
                 temperature=0.0,
             ),
         )
-        text = (resp.text or "").strip()
-        if not text:
-            raise RuntimeError("Empty response from Gemini timeline model.")
 
-        raw = json.loads(text)
+        text = (resp.text or "").strip()
+
+        # Robust parse + 1 retry if needed (also quota-safe)
+        try:
+            raw = _loads_json_strict(text)
+        except Exception:
+            hard_prompt = prompt + "\n\nIMPORTANT: Output ONLY valid JSON. No prose. No markdown. No code fences."
+            resp2 = _call_generate_content_with_quota_retry(
+                client=client,
+                model=cfg.gemini_text_model,
+                contents=[types.Part.from_bytes(data=img_bytes, mime_type=mime), hard_prompt],
+                config=types.GenerateContentConfig(
+                    temperature=0.0,
+                ),
+            )
+            text2 = (resp2.text or "").strip()
+            raw = _loads_json_strict(text2)
+
         norm = _normalize_frame_json(raw)
 
         frame_results.append(FrameResult(
@@ -455,7 +578,8 @@ def build_timeline(cfg: AppConfig, day_dir: str, day_date: date, out_dir: str) -
             notes=norm["notes"],
         ))
 
-        time.sleep(cfg.request_sleep_seconds)
+        if sleep_s > 0:
+            time.sleep(sleep_s)
 
     segments, inferred_interval = _merge_frames_into_segments(cfg, frame_results, day_dir)
     timeline_lines = _segments_to_human_lines(segments)

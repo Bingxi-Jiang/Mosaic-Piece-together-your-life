@@ -4,19 +4,19 @@ import time
 import argparse
 from datetime import date as ddate
 
-from config import AppConfig
-from utils_time import now_local, today_local_date, is_past_stop_time
-from utils_paths import ensure_dir, day_folder, artifacts_dir
+from .config import AppConfig
+from .utils_time import now_local, today_local_date, is_past_stop_time
+from .utils_paths import ensure_dir, day_folder, artifacts_dir
 
-from services.screenshot_service import take_screenshot_to
-from services.app_monitor import check_blacklist
+from .services.screenshot_service import take_screenshot_to
+from .services.app_monitor import check_blacklist
 
-from pipelines.timeline_pipeline import build_timeline
-from pipelines.trigger_pipeline import build_feedback_events
-from pipelines.google_export_pipeline import export_google_today
-from pipelines.daily_report_pipeline import build_daily_report
+from .pipelines.timeline_pipeline import build_timeline
+from .pipelines.trigger_pipeline import build_feedback_events
+from .pipelines.google_export_pipeline import export_google_today
+from .pipelines.daily_report_pipeline import build_daily_report
 
-from tools.simulate_day import simulate_random_day
+from .tools.simulate_day import simulate_random_day
 
 
 def _append_jsonl(path: str, obj: dict) -> None:
@@ -41,7 +41,12 @@ def run_capture(cfg: AppConfig) -> str:
         "day_dir": os.path.abspath(day_dir),
         "stop_time_local": cfg.stop_time_local,
         "interval_sec": cfg.screenshot_interval_sec,
-        "blacklist": cfg.blacklist_keywords,
+        "privacy_config_file": cfg.privacy_config_file,
+        "blacklist": {
+            "title_keywords": cfg.blacklist_title_keywords,
+            "app_names": cfg.blacklist_app_names,
+            "url_keywords": cfg.blacklist_url_keywords,
+        },
     })
 
     while True:
@@ -55,11 +60,25 @@ def run_capture(cfg: AppConfig) -> str:
             })
             break
 
-        hit, info = check_blacklist(cfg.blacklist_keywords)
+        hit, info = check_blacklist(
+            cfg.blacklist_title_keywords,
+            app_names=cfg.blacklist_app_names,
+            url_keywords=cfg.blacklist_url_keywords,
+        )
+
         if hit:
             if not paused:
                 paused = True
-                pause_reason = {"keyword": info.keyword, "title": info.window_title} if info else None
+                pause_reason = (
+                    {
+                        "kind": info.kind,
+                        "keyword": info.keyword,
+                        "title": info.window_title,
+                        "app": info.app_name,
+                        "url": info.url,
+                    }
+                    if info else None
+                )
                 _append_jsonl(log_path, {
                     "type": "pause_capture",
                     "ts": now_dt.isoformat(),

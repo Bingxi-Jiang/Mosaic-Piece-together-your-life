@@ -1,0 +1,11 @@
+.venv
+__pycache__
+*.pyc
+screenshots
+screenshots_test
+artified_backend/screenshots
+artifacts
+credentials.json
+privacy_config.json
+.env
+.DS_Store

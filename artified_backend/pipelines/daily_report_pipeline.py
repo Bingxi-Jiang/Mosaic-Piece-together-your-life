@@ -1,14 +1,16 @@
 import os
 import json
 import re
+import time
+import random
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
 
 from google import genai
 from google.genai import types
 
-from config import AppConfig
-from utils_paths import ensure_dir
+from ..config import AppConfig
+from ..utils_paths import ensure_dir
 
 
 def _load_json(path: str) -> Dict[str, Any]:
@@ -140,19 +142,110 @@ Timeline (for inspiration, do not copy literal text):
 """.strip()
 
 
+# ---------------- Robust JSON helpers ----------------
+
+def _extract_first_json_object(text: str) -> Optional[str]:
+    if not text:
+        return None
+    s = text.strip()
+
+    # Strip markdown code fences: ```json ... ``` or ``` ... ```
+    if s.startswith("```"):
+        s = re.sub(r"^```[a-zA-Z]*\s*", "", s)
+        s = re.sub(r"\s*```$", "", s).strip()
+
+    # Direct JSON object
+    if s.startswith("{") and s.endswith("}"):
+        return s
+
+    # Best-effort first { ... } object
+    m = re.search(r"\{[\s\S]*\}", s)
+    if not m:
+        return None
+    return m.group(0).strip()
+
+
+def _loads_json_robust(text: str) -> Dict[str, Any]:
+    if not text or not text.strip():
+        raise ValueError("Empty model text")
+    s = text.strip()
+    try:
+        return json.loads(s)
+    except Exception:
+        extracted = _extract_first_json_object(s)
+        if not extracted:
+            raise
+        return json.loads(extracted)
+
+
+def _call_generate_with_quota_retry(
+    client: genai.Client,
+    model: str,
+    contents,
+    temperature: float,
+    max_retries: int = 6,
+):
+    """
+    Handles free-tier 429 RESOURCE_EXHAUSTED by sleeping and retrying.
+    """
+    for attempt in range(max_retries + 1):
+        try:
+            return client.models.generate_content(
+                model=model,
+                contents=contents,
+                config=types.GenerateContentConfig(
+                    temperature=temperature,
+                ),
+            )
+        except Exception as e:
+            msg = str(e)
+
+            if ("429" not in msg) and ("RESOURCE_EXHAUSTED" not in msg):
+                raise
+
+            # Parse "Please retry in XXs" if present
+            delay = None
+            m = re.search(r"Please retry in\s+([0-9.]+)s", msg)
+            if m:
+                delay = float(m.group(1))
+            else:
+                delay = min(60.0, (2.0 ** attempt)) + random.uniform(0.0, 1.0)
+
+            if attempt >= max_retries:
+                raise
+
+            print(f"[quota] 429, sleeping {delay:.1f}s then retry (attempt {attempt+1}/{max_retries})...")
+            time.sleep(delay)
+
+
 def _call_gemini_text_json(cfg: AppConfig, client: genai.Client, prompt: str) -> Dict[str, Any]:
-    resp = client.models.generate_content(
+    """
+    Robust JSON call:
+    - gemini-2.5-flash: no thinking_config
+    - strips code fences / extracts JSON object
+    - retries once with strict instruction
+    - 429 quota sleep+retry
+    """
+    resp = _call_generate_with_quota_retry(
+        client=client,
         model=cfg.gemini_text_model,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            temperature=0.2,
-            thinking_config=types.ThinkingConfig(thinking_level="medium"),
-        ),
+        contents=[prompt],
+        temperature=0.2,
     )
     text = (resp.text or "").strip()
-    if not text:
-        raise RuntimeError("Empty response from Gemini (text).")
-    return json.loads(text)
+
+    try:
+        return _loads_json_robust(text)
+    except Exception:
+        hard = prompt + "\n\nIMPORTANT: Output ONLY valid JSON. No prose. No markdown. No code fences."
+        resp2 = _call_generate_with_quota_retry(
+            client=client,
+            model=cfg.gemini_text_model,
+            contents=[hard],
+            temperature=0.0,
+        )
+        text2 = (resp2.text or "").strip()
+        return _loads_json_robust(text2)
 
 
 def _extract_image_bytes_from_response(resp: Any) -> Optional[Tuple[bytes, str]]:
@@ -179,10 +272,12 @@ def _extract_image_bytes_from_response(resp: Any) -> Optional[Tuple[bytes, str]]
 
 
 def _call_gemini_generate_image(cfg: AppConfig, client: genai.Client, prompt: str) -> Tuple[bytes, str]:
-    resp = client.models.generate_content(
+    # image generation can also hit 429; reuse the same retry wrapper
+    resp = _call_generate_with_quota_retry(
+        client=client,
         model=cfg.gemini_image_model,
-        contents=prompt,
-        config=types.GenerateContentConfig(temperature=0.7),
+        contents=[prompt],
+        temperature=0.7,
     )
     extracted = _extract_image_bytes_from_response(resp)
     if not extracted:

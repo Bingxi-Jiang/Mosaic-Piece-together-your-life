@@ -8,8 +8,10 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
-from config import AppConfig
-from utils_paths import ensure_dir
+from ..config import AppConfig
+
+from ..utils_paths import ensure_dir
+
 
 
 def _get_credentials(cfg: AppConfig) -> Credentials:
@@ -24,7 +26,14 @@ def _get_credentials(cfg: AppConfig) -> Credentials:
             if not os.path.exists(cfg.google_credentials_file):
                 raise RuntimeError(f"Missing {cfg.google_credentials_file}. Needed for OAuth flow.")
             flow = InstalledAppFlow.from_client_secrets_file(cfg.google_credentials_file, cfg.google_scopes)
-            creds = flow.run_local_server(port=0)
+            creds = flow.run_local_server(
+                host="localhost",
+                port=8080,
+                authorization_prompt_message="Please visit this URL: {url}",
+                success_message="✅ Authorization complete. You may close this tab.",
+                open_browser=True,
+            )
+
 
         with open(cfg.google_token_file, "w", encoding="utf-8") as token:
             token.write(creds.to_json())
@@ -46,8 +55,14 @@ def export_google_today(cfg: AppConfig, out_dir: str, day: datetime.date) -> str
     data_output: Dict[str, Any] = {
         "report_date": day_str,
         "export_timestamp": datetime.datetime.now().isoformat(),
-        "calendar": {"summary": "今日历事件", "items": []},
-        "tasks": {"summary": "今日截止任务", "items": []},
+        "calendar": {
+        "summary": "Today's Calendar Events",
+        "items": []
+        },
+        "tasks": {
+            "summary": "Tasks Due Today",
+            "items": []
+        },
     }
 
     cal_results = cal_service.events().list(

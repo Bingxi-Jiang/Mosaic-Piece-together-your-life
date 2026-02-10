@@ -1,184 +1,298 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" data-theme="cute">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mosaic — Daily Recap</title>
-  <link rel="stylesheet" href="./styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          borderRadius: { 'mosaic': 'var(--radius)' },
+          colors: {
+            'm-bg': 'var(--bg)',
+            'm-card': 'var(--card)',
+            'm-accent': 'var(--accent)',
+            'm-text': 'var(--text)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    [data-theme="cute"] {
+      --bg: #FFF9F5; --card: #FFFFFF; --accent: #FF85A1; --text: #4A4A4A; --radius: 24px; --border: #FFD1DC;
+    }
+    [data-theme="cyber"] {
+      --bg: #050505; --card: #121212; --accent: #00F3FF; --text: #E0E0E0; --radius: 0px; --border: #00F3FF;
+    }
+    [data-theme="minimal"] {
+      --bg: #FFFFFF; --card: #F9F9F9; --accent: #000000; --text: #1A1A1A; --radius: 8px; --border: #EEEEEE;
+    }
+
+    body { background-color: var(--bg); color: var(--text); transition: all 0.3s ease; }
+    .glass-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 6px 6px 0px var(--border);
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+  </style>
 </head>
-<body>
-  <div class="bg">
-    <div class="noise"></div>
-  </div>
 
-  <header class="header">
-    <div class="container header__inner">
-      <div class="brand">
-        <div class="brand__logo">M</div>
-        <div class="brand__text">
-          <div class="brand__name">Mosaic</div>
-          <div class="brand__sub">Piece together your day</div>
-        </div>
-      </div>
+<body class="antialiased min-h-screen">
 
-      <div class="controls">
-        <div class="control">
-          <label for="dateInput">Date</label>
-          <input id="dateInput" type="date" />
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-white/30 border-b border-black/5 mb-6">
+    <div class="container mx-auto px-4 py-4 flex flex-col gap-3">
+
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 flex items-center justify-center font-black text-white rounded-lg" style="background: var(--accent)">M</div>
+          <div>
+            <h1 class="font-bold text-lg leading-none">Mosaic</h1>
+            <p class="text-[10px] uppercase tracking-widest opacity-60">Piece together your day</p>
+          </div>
         </div>
-        <div class="control">
-          <label for="styleSelect">Style</label>
-          <select id="styleSelect" disabled>
-            <option>year_in_review_cute</option>
+
+        <div class="flex items-center gap-2 bg-black/5 p-1 rounded-xl">
+          <input id="dateInput" type="date" class="bg-transparent text-sm border-none focus:ring-0 px-2" />
+
+          <select id="styleSelect" class="bg-transparent text-sm font-bold border-none focus:ring-0">
+            <option value="year_in_review_cute">Cute</option>
+            <option value="cyberpunk">Cyberpunk</option>
+            <option value="minimalist">Minimalist</option>
           </select>
+
+          <button id="loadBtn" class="bg-black text-white px-4 py-1.5 rounded-lg text-sm font-bold hover:scale-105 transition">
+            Load
+          </button>
         </div>
-        <button id="loadBtn" class="btn">Load</button>
       </div>
+
+      <div class="glass-card px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="flex items-center gap-2 text-xs font-bold">
+          <i data-lucide="activity" class="w-4 h-4"></i>
+          <span id="capStatusText" class="opacity-80">capture: —</span>
+          <span id="googleStatusText" class="opacity-60 ml-3">google: —</span>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button id="capStartBtn" class="px-3 py-1.5 rounded-lg text-xs font-black bg-black text-white hover:scale-105 transition">Start</button>
+          <button id="capStopBtn" class="px-3 py-1.5 rounded-lg text-xs font-black bg-black/10 hover:scale-105 transition">Stop</button>
+
+          <div class="w-px bg-black/10 mx-1"></div>
+
+          <!-- ✅ swapped order + rename -->
+          <button id="buildBtn" class="px-3 py-1.5 rounded-lg text-xs font-black bg-black/10 hover:scale-105 transition">Build</button>
+          <button id="buildTodayBtn" class="px-3 py-1.5 rounded-lg text-xs font-black bg-black/10 hover:scale-105 transition">Build Today</button>
+
+          <div class="w-px bg-black/10 mx-1"></div>
+
+          <button id="googleConnectBtn" class="px-3 py-1.5 rounded-lg text-xs font-black bg-black/10 hover:scale-105 transition">Connect Google</button>
+          <button id="googleDisconnectBtn" class="px-3 py-1.5 rounded-lg text-xs font-black bg-black/10 hover:scale-105 transition">Disconnect</button>
+        </div>
+      </div>
+
     </div>
   </header>
 
-  <main class="container main">
-    <section class="hero">
-      <div class="hero__left">
-        <h1 id="title" class="h1">Daily Recap</h1>
-        <p id="subtitle" class="sub">
-          Load your daily report JSON and we’ll render the timeline, vibe, and your “redrawn day”.
-        </p>
+  <main class="container mx-auto px-4 pb-12">
 
-        <div class="pillRow" id="pillRow">
-          <!-- filled dynamically -->
+    <!-- Google Today Panel -->
+    <section class="glass-card p-6 mb-8">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <div class="text-xs font-black uppercase opacity-60">Google Today</div>
+          <div id="googleTodayMeta" class="text-sm opacity-70 mt-1">Connect Google to view today’s events & tasks.</div>
+        </div>
+        <div class="flex gap-2">
+          <button id="googleTodayRefreshBtn" class="px-3 py-1.5 rounded-lg text-xs font-black bg-black/10 hover:scale-105 transition">Refresh</button>
         </div>
       </div>
 
-      <div class="hero__right card">
-        <div class="card__head">
-          <div class="card__title">Quick Stats</div>
-          <div class="card__meta" id="statsMeta">—</div>
+      <div class="grid md:grid-cols-2 gap-4 mt-4">
+        <div class="p-4 rounded-2xl bg-black/5 border border-black/10">
+          <div class="text-xs font-bold opacity-60 mb-2">Today’s Calendar</div>
+          <div id="googleEventsList" class="space-y-2"></div>
+          <div id="googleEventsEmpty" class="text-xs opacity-50 mt-2 hidden">No events today.</div>
         </div>
-        <div class="card__body">
-          <div class="statsGrid">
-            <div class="stat">
-              <div class="stat__label">Segments</div>
-              <div class="stat__value" id="statSegments">—</div>
-            </div>
-            <div class="stat">
-              <div class="stat__label">Context switches</div>
-              <div class="stat__value" id="statSwitches">—</div>
-            </div>
-            <div class="stat">
-              <div class="stat__label">Top surface</div>
-              <div class="stat__value" id="statTopSurface">—</div>
-            </div>
-            <div class="stat">
-              <div class="stat__label">Top activity</div>
-              <div class="stat__value" id="statTopActivity">—</div>
-            </div>
-          </div>
+
+        <div class="p-4 rounded-2xl bg-black/5 border border-black/10">
+          <div class="text-xs font-bold opacity-60 mb-2">Tasks Due Today</div>
+          <div id="googleTasksList" class="space-y-2"></div>
+          <div id="googleTasksEmpty" class="text-xs opacity-50 mt-2 hidden">No tasks due today.</div>
         </div>
       </div>
     </section>
 
-    <section class="grid">
-      <!-- Timeline -->
-      <section class="card span2">
-        <div class="card__head">
-          <div class="card__title">Timeline</div>
-          <div class="card__meta" id="timelineMeta">—</div>
+    <div class="grid lg:grid-cols-3 gap-6 mb-8">
+      <div class="lg:col-span-2 space-y-4">
+        <h2 id="title" class="text-5xl font-black tracking-tighter" style="color: var(--accent)">Daily Recap</h2>
+        <p id="subtitle" class="text-lg opacity-70 max-w-xl">Loading your daily report...</p>
+        <div id="pillRow" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <div class="glass-card p-6 flex flex-col justify-center">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="text-center border-r border-black/5">
+            <p class="text-[10px] uppercase opacity-50">Segments</p>
+            <p id="statSegments" class="text-2xl font-black">—</p>
+          </div>
+          <div class="text-center">
+            <p class="text-[10px] uppercase opacity-50">Switches</p>
+            <p id="statSwitches" class="text-2xl font-black">—</p>
+          </div>
         </div>
-        <div class="card__body">
-          <div class="tabs">
-            <button class="tab isActive" data-tab="human">Readable</button>
-            <button class="tab" data-tab="segments">Segments</button>
+        <div id="statsMeta" class="mt-2 text-[10px] opacity-50 text-center"></div>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-12 gap-6">
+      <section class="lg:col-span-8 glass-card overflow-hidden">
+        <div class="p-4 border-b border-black/5 flex justify-between items-center bg-black/5">
+          <span class="font-bold uppercase text-xs flex items-center gap-2">
+            <i data-lucide="clock" class="w-4 h-4"></i> Timeline
+          </span>
+          <span id="timelineMeta" class="text-[10px] opacity-50"></span>
+        </div>
+
+        <div class="p-6">
+          <div class="flex gap-2 mb-6" id="tabs">
+            <button class="tab px-4 py-1 rounded-full text-xs font-bold border-2 border-current" data-tab="human">Readable</button>
+            <button class="tab px-4 py-1 rounded-full text-xs font-bold opacity-40" data-tab="segments">Segments</button>
+            <button class="tab px-4 py-1 rounded-full text-xs font-bold opacity-40" data-tab="feedback">Feedback</button>
           </div>
 
-          <div id="tab-human" class="tabPanel isActive">
-            <div id="timelineReadable" class="list"></div>
-          </div>
-
-          <div id="tab-segments" class="tabPanel">
-            <div id="timelineSegments" class="segments"></div>
-          </div>
+          <div id="tab-human" class="tabPanel space-y-3"></div>
+          <div id="tab-segments" class="tabPanel hidden space-y-3"></div>
+          <div id="tab-feedback" class="tabPanel hidden space-y-3"></div>
         </div>
       </section>
 
-      <!-- Redraw image -->
-      <section class="card">
-        <div class="card__head">
-          <div class="card__title">Redraw of the day</div>
-          <div class="card__meta" id="imageMeta">—</div>
-        </div>
-        <div class="card__body">
-          <div class="imageWrap">
-            <img id="redrawImg" alt="Redrawn day" />
-            <div class="imageFallback" id="imageFallback">
-              No image loaded yet.
-            </div>
-          </div>
-          <div class="smallNote" id="imagePath">—</div>
-        </div>
-      </section>
-
-      <!-- Vibe + Caring -->
-      <section class="card">
-        <div class="card__head">
-          <div class="card__title">Vibe & care</div>
-          <div class="card__meta" id="vibeMeta">—</div>
-        </div>
-        <div class="card__body">
-          <div class="vibeRow">
-            <div class="vibeBadge" id="vibeBadge">—</div>
-            <div class="confidence" id="vibeConf">—</div>
+      <aside class="lg:col-span-4 space-y-6">
+        <section class="glass-card p-6">
+          <div class="flex items-center gap-2 mb-4">
+            <div id="vibeBadge" class="px-3 py-1 bg-black text-white text-xs font-bold rounded-full">Vibe</div>
+            <span id="vibeConf" class="text-[10px] font-mono opacity-50"></span>
           </div>
 
-          <div class="sectionTitle">Why</div>
-          <ul class="bullets" id="vibeWhy"></ul>
+          <p id="caringMessage" class="text-lg font-bold italic mb-4">—</p>
 
-          <div class="sectionTitle">Notable patterns</div>
-          <ul class="bullets" id="vibePatterns"></ul>
-
-          <div class="divider"></div>
-
-          <div class="sectionTitle">Caring message</div>
-          <p class="para" id="caringMessage">—</p>
-
-          <div class="quote" id="quote">—</div>
-          <div class="humor" id="humorAlt">—</div>
-        </div>
-      </section>
-
-      <!-- Totals -->
-      <section class="card span2">
-        <div class="card__head">
-          <div class="card__title">Totals</div>
-          <div class="card__meta" id="totalsMeta">—</div>
-        </div>
-        <div class="card__body">
-          <div class="twoCol">
+          <div class="space-y-4 text-sm">
             <div>
-              <div class="sectionTitle">By surface</div>
-              <div id="bySurface" class="bars"></div>
+              <p class="text-[10px] uppercase font-bold opacity-40 mb-1">Why</p>
+              <ul id="vibeWhy" class="list-disc list-inside opacity-70"></ul>
             </div>
-            <div>
-              <div class="sectionTitle">By activity</div>
-              <div id="byActivity" class="bars"></div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      <!-- Footer note -->
-      <section class="footNote">
-        <div class="footNote__inner">
-          <div class="footNote__title">How to load</div>
-          <div class="footNote__text">
-            This page expects a <code>daily_report_YYYY-MM-DD.json</code> and (optionally) a matching
-            <code>timeline_YYYY-MM-DD.json</code> under your screenshots day folder.
+            <div>
+              <p class="text-[10px] uppercase font-bold opacity-40 mb-1">Patterns</p>
+              <ul id="vibePatterns" class="list-disc list-inside opacity-70"></ul>
+            </div>
+
+            <div>
+              <p class="text-[10px] uppercase font-bold opacity-40 mb-1">Humor alt</p>
+              <div id="humorAlt" class="opacity-70">—</div>
+            </div>
           </div>
+
+          <div id="quote" class="mt-6 p-4 bg-black/5 rounded-xl text-sm italic border-l-4 border-current">—</div>
+          <div id="vibeMeta" class="mt-3 text-[10px] opacity-50 font-mono"></div>
+        </section>
+
+        <section class="glass-card overflow-hidden">
+          <div class="p-3 text-[10px] font-bold uppercase opacity-50 border-b border-black/5">Redraw of the Day</div>
+
+          <div class="relative">
+            <img id="redrawImg" class="w-full h-auto object-cover hidden" alt="redraw" />
+            <div id="imageFallback" class="p-12 text-center text-xs opacity-40">No image yet.</div>
+          </div>
+
+          <div class="p-3 text-[10px] opacity-60 border-t border-black/5">
+            <div id="imageMeta"></div>
+            <div id="imagePath" class="truncate"></div>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <!-- Privacy / Blacklist Manager (BOTTOM) -->
+    <section class="glass-card p-6 mt-8">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <div class="text-xs font-black uppercase opacity-60">Privacy / Blacklist</div>
+          <div class="text-sm opacity-70 mt-1">Add items (append, no overwrite) + Save to persist.</div>
         </div>
-      </section>
+        <div class="flex gap-2">
+          <button id="privacyReloadBtn" class="px-3 py-1.5 rounded-lg text-xs font-black bg-black/10 hover:scale-105 transition">Reload</button>
+          <button id="privacySaveBtn" class="px-3 py-1.5 rounded-lg text-xs font-black bg-black text-white hover:scale-105 transition">Save</button>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-4 mt-4">
+        <div class="p-4 rounded-2xl bg-black/5 border border-black/10">
+          <div class="text-xs font-bold opacity-60 mb-2">Current Blocked Apps</div>
+          <div id="blockedAppsList" class="flex flex-wrap gap-2"></div>
+          <div id="blockedAppsEmpty" class="text-xs opacity-50 mt-2 hidden">No blocked apps.</div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-black/5 border border-black/10">
+          <div class="text-xs font-bold opacity-60 mb-2">Current Blocked Keywords</div>
+          <div id="blockedKeywordsList" class="flex flex-wrap gap-2"></div>
+          <div id="blockedKeywordsEmpty" class="text-xs opacity-50 mt-2 hidden">No blocked keywords.</div>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-4 mt-4">
+        <div class="p-4 rounded-2xl bg-black/5 border border-black/10">
+          <div class="text-xs font-bold opacity-60 mb-2">Quick Add App</div>
+          <div class="flex gap-2">
+            <input id="addAppInput" class="flex-1 px-3 py-2 rounded-xl bg-white/70 border border-black/10 text-sm"
+              placeholder='e.g. WeChat / Notes / 1Password' />
+            <button id="addAppBtn" class="px-4 py-2 rounded-xl text-xs font-black bg-black text-white hover:scale-105 transition">Add</button>
+          </div>
+          <div class="text-[11px] opacity-50 mt-2">Adds into list (dedupe). Then click Save to persist.</div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-black/5 border border-black/10">
+          <div class="text-xs font-bold opacity-60 mb-2">Quick Add Keyword</div>
+          <div class="flex gap-2">
+            <input id="addKeywordInput" class="flex-1 px-3 py-2 rounded-xl bg-white/70 border border-black/10 text-sm"
+              placeholder='e.g. bank / login / instagram.com' />
+            <button id="addKeywordBtn" class="px-4 py-2 rounded-xl text-xs font-black bg-black text-white hover:scale-105 transition">Add</button>
+          </div>
+          <div class="text-[11px] opacity-50 mt-2">Adds into list (dedupe). Then click Save to persist.</div>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-4 mt-4">
+        <div>
+          <div class="text-xs font-bold opacity-60 mb-2">Edit Blocked Apps (one per line)</div>
+          <textarea id="blockedAppsInput" rows="6" class="w-full p-3 rounded-xl bg-black/5 border border-black/10 text-sm font-mono"></textarea>
+        </div>
+
+        <div>
+          <div class="text-xs font-bold opacity-60 mb-2">Edit Blocked Keywords (one per line)</div>
+          <textarea id="blockedKeywordsInput" rows="6" class="w-full p-3 rounded-xl bg-black/5 border border-black/10 text-sm font-mono"></textarea>
+        </div>
+      </div>
+
+      <div id="privacyMeta" class="text-[10px] opacity-50 font-mono mt-3"></div>
     </section>
+
   </main>
 
-  <script src="./app.js"></script>
+  <div id="toastHost" class="fixed top-4 right-4 z-[9999] space-y-2"></div>
+
+  <script src="/static/app.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
 </body>
 </html>

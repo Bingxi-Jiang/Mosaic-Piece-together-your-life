@@ -1,0 +1,36 @@
+# ===== Python =====
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# ===== Build / Packaging =====
+build/
+dist/
+artifacts/
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# Secrets / local config
+credentials.json
+privacy_config.json
+token_combined.json
+
+# Data / runtime outputs
+screenshots/
+artified_backend/screenshots/
+
+# PyInstaller
+*.spec
+
+# Node (optional)
+node_modules/

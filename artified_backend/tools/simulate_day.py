@@ -4,7 +4,7 @@ import random
 from datetime import datetime, date, timedelta
 from typing import List, Optional
 
-from utils_paths import ensure_dir, day_folder
+from ..utils_paths import ensure_dir, day_folder
 
 
 IMAGE_EXTS = {".png", ".jpg", ".jpeg"}

@@ -4,8 +4,8 @@ from datetime import date
 from dataclasses import dataclass, asdict
 from typing import Any, Dict, List, Optional
 
-from config import AppConfig
-from utils_paths import ensure_dir
+from ..config import AppConfig
+from ..utils_paths import ensure_dir
 
 
 def parse_hhmm(s: str) -> int:
@@ -51,6 +51,7 @@ def _choose(options: List[str], salt: str) -> str:
     idx = int(h[:8], 16) % len(options)
     return options[idx]
 
+
 DEFAULT_WORK_ACTIVITIES = {"Coding", "Writing/Reading"}
 
 
@@ -92,7 +93,7 @@ def detect_first_work(segments: List[Dict[str, Any]], cd: CooldownTracker) -> Li
                     trigger_type="first_work",
                     level="L1",
                     ui=ui,
-                    message="开始干活啦～今天也一起把重要的事推进一点点。",
+                    message="You’ve started your work for the day. Let’s move one important thing forward, step by step.",
                     evidence_segment_ids=[seg.get("segment_id","")],
                     project_id=infer_project_id(seg),
                     confidence=0.75,
@@ -137,19 +138,19 @@ def detect_focus_levels(
                     )
                     variants = {
                         "L1": [
-                            f"你已经连续专注了 {th} 分钟，记得喝口水。",
-                            f"{th} 分钟专注达成。站起来走两步会更舒服。",
-                            f"专注 {th} 分钟了，节奏很稳，继续保持。",
+                            f"You’ve been focused for {th} minutes. A sip of water might feel nice.",
+                            f"{th} minutes of focus completed. A short stretch could help.",
+                            f"{th} minutes in—your pace looks steady. Keep going.",
                         ],
                         "L2": [
-                            f"已经专注到 {th} 分钟。可以考虑做一次小休息再继续。",
-                            f"{th} 分钟深度状态很难得，休息一下眼睛更好。",
-                            f"专注 {th} 分钟了。给自己一个小奖励吧。",
+                            f"You’ve reached {th} minutes of focus. A short break could help you reset.",
+                            f"{th} minutes of deep focus is rare—resting your eyes might feel good.",
+                            f"{th} focused minutes in. You’ve earned a small reward.",
                         ],
                         "L3": [
-                            f"你已经专注了 {th} 分钟，今天推进很扎实。",
-                            f"{th} 分钟连续投入，建议起来活动一下肩颈。",
-                            f"专注到 {th} 分钟了，干得漂亮，别忘了补水。",
+                            f"You’ve stayed focused for {th} minutes—that’s solid progress today.",
+                            f"{th} minutes of continuous work. Moving your shoulders a bit could help.",
+                            f"{th} minutes in—great work. Don’t forget to hydrate.",
                         ],
                     }
                     msg = _choose(variants.get(level, []), salt=f"{seg.get('segment_id','')}_{level}_{end_min}")
@@ -201,7 +202,7 @@ def detect_return_to_work(
         else:
             if was_off and off_min >= min_offwork_minutes and cd.can_send("return_to_work", start_min, 60):
                 ui = FeedbackUI(type="toast", ttl_sec=6, can_close=True, intensity="medium")
-                msg = f"欢迎回来～你刚刚离开工作页面 {off_min} 分钟，继续把这一段收尾就很棒。"
+                msg = f"Welcome back. You were away for about {off_min} minutes—wrapping up this next part would be a great move."
                 ev = FeedbackEvent(
                     event_id=f"return_{s_id}",
                     time_local=seg["start_time_local"],
@@ -254,7 +255,7 @@ def detect_anomaly_switching(
         if end_min - window_start >= window_minutes:
             if switches >= switch_threshold and cd.can_send("anomaly_switching", end_min, 180):
                 ui = FeedbackUI(type="toast", ttl_sec=6, can_close=True, intensity="medium")
-                msg = "你这一小时切换有点频繁，先选一个最小任务推进 10 分钟，会更轻松。"
+                msg = "There’s been a lot of context switching lately. Picking one small task to focus on for 10 minutes might feel easier."
                 ev = FeedbackEvent(
                     event_id=f"anomaly_{s_id}",
                     time_local=seg["end_time_local"],
